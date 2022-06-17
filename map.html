@@ -1,0 +1,961 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>ArcGIS API for JavaScript Tutorials: Change the basemap layer</title>
+  <style>
+    html, body, #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.23/esri/themes/light/main.css">
+  <script src="https://js.arcgis.com/4.23/"></script>
+
+  <script>
+
+    require([
+        "esri/config",
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/widgets/BasemapToggle",
+        "esri/widgets/BasemapGallery",
+        "esri/Graphic",
+        "esri/layers/GraphicsLayer",
+        "esri/layers/FeatureLayer",
+        "esri/rest/locator",
+
+    ], function(esriConfig, Map, MapView, BasemapToggle, BasemapGallery, Graphic, GraphicsLayer, FeatureLayer, locator) {
+
+      esriConfig.apiKey = "AAPK3cc94ddf30464d7fa23f4612ba89babeLX4N-mnU-PEqQcfMOwJoxN0-77IiS0JmkACnjvJmnDQDDMUfi-SFiTdQ78cfvcWQ";
+
+
+        const map = new Map({  
+            basemap: "arcgis-navigation" //Basemap layer service
+        });
+
+        const view = new MapView({
+            map: map,
+            center: [-110.680743, 43.777119], //Longitude, latitude
+            zoom: 5,
+            container: "viewDiv"
+        });
+        const places = ["Choose a place type...", "Parks and Outdoors"]
+        const select = document.createElement("select","");
+            select.setAttribute("class", "esri-widget esri-select");
+            select.setAttribute("style", "width: 175px; font-family: 'Avenir Next W00'; font-size: 1em");
+            places.forEach(function(p){
+        const option = document.createElement("option");
+            option.value = p;
+            option.innerHTML = p;
+            select.appendChild(option);
+        });
+        view.ui.add(select, "top-right");
+        const locatorUrl = "http://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer";
+        function findPlaces(category, pt) {
+            locator.addressToLocations(locatorUrl, {
+            location: pt,
+            categories: [category],
+            maxLocations: 25,
+            outFields: ["Place_addr", "PlaceName", "PlacePic"]
+            })
+            .then(function(results) {
+                view.popup.close();
+                view.graphics.removeAll();
+                results.forEach(function(result){
+                    view.graphics.add(
+                        new Graphic({
+                            attributes: result.attributes,  // Data attributes returned
+                            geometry: result.location, // Point returned
+                            symbol: {
+                            type: "simple-marker",
+                            color: "#000000",
+                            size: "12px",
+                            outline: {
+                            color: "#ffffff",
+                            width: "2px"
+                            }
+                            },
+
+                            popupTemplate: {
+                            title: "{PlaceName}", // Data attribute names
+                            content: "{Place_addr}",
+                            picture: "{PlacePic}"
+
+                            }
+                         }));
+                    });
+                 });
+        }
+        view.watch("stationary", function(val) {
+            if (val) {
+            findPlaces(select.value, view.center);
+            }
+        });
+
+        // Listen for category changes and find places
+        select.addEventListener('change', function (event) {
+            findPlaces(event.target.value, view.center);
+        });
+        select.addEventListener('change', function (event) {
+            findPlaces(event.target.value, view.center);
+        });
+        const basemapToggle = new BasemapToggle({
+            view: view,
+            nextBasemap: "arcgis-imagery"
+        });
+
+        view.ui.add(basemapToggle,"bottom-right");
+
+        const basemapGallery = new BasemapGallery({
+            view: view,
+            source: {
+            query: {
+                title: '"World Basemaps for Developers" AND owner:esri'
+                }
+            }
+        });
+        const graphicsLayer = new GraphicsLayer();
+        map.add(graphicsLayer);
+        // Create a polygon geometry
+        const polygon = {
+            type: "polygon",
+            rings: [
+                [-114.360840, 49.000900], //Longitude, latitude
+                [-113.673177, 48.997870], //Longitude, latitude
+                [-113.264379, 48.420260], //Longitude, latitude
+                [-114.125857, 48.580948] //Longitude, latitude
+            ]
+        };
+
+        const simpleFillSymbol = {
+            type: "simple-fill",
+            color: [34, 139, 34, 0.8],
+            outline: {
+                color: [0, 100, 0],
+                width: 1
+            }
+        };
+
+        const popupTemplate = {
+            title: "{Name}",
+            content: "{Description}"
+        };
+        const attributes = {
+            Name: "Glacier National Park",
+            Description: "A showcase of melting glaciers, alpine meadows, carved valleys, and spectacular lakes. With over 700 miles of trails, Glacier is a paradise for adventurous visitors seeking wilderness steeped in human history. Relive the days of old through historic chalets, lodges, and the famous Going-to-the-Sun Road."
+        };
+
+        const polygonGraphic = new Graphic({
+            geometry: polygon,
+            symbol: simpleFillSymbol,
+
+            attributes: attributes,
+            popupTemplate: popupTemplate
+
+        });
+        graphicsLayer.add(polygonGraphic);
+
+
+        const graphicsLayer2 = new GraphicsLayer();
+        map.add(graphicsLayer2);
+        // Create a polygon geometry
+        const polygon2 = {
+            type: "polygon",
+            rings: [
+                [-110.693681, 44.046134], //Longitude, latitude
+                [-110.660067, 44.045674], //Longitude, latitude
+                [-110.660067, 44.001835], //Longitude, latitude
+                [-110.619573, 44.000853],   //Longitude, latitude
+                [-110.621393, 43.931100],   //Longitude, latitude
+                [-110.470338, 43.928807],   //Longitude, latitude
+                [-110.467705, 43.825166],   //Longitude, latitude
+                [-110.423117, 43.845201],   //Longitude, latitude
+                [-110.428576, 43.776909],   //Longitude, latitude
+                [-110.557792, 43.756209],   //Longitude, latitude
+                [-110.624674, 43.691763],   //Longitude, latitude
+                [-110.584181, 43.676298],   //Longitude, latitude
+                [-110.583255, 43.634792],   //Longitude, latitude
+                [-110.735706, 43.479711],   //Longitude, latitude
+                [-110.761994, 43.488963],   //Longitude, latitude
+                [-110.730354, 43.547864],   //Longitude, latitude
+                [-110.723585, 43.596220],   //Longitude, latitude
+                [-110.724844, 43.639411],   //Longitude, latitude
+                [-110.783083, 43.596643],   //Longitude, latitude
+                [-110.827316, 43.596529],   //Longitude, latitude
+                [-111.045761, 43.580663],   //Longitude, latitude
+                [-111.035550, 43.854929],   //Longitude, latitude
+                [-110.832086, 44.048953]   //Longitude, latitude
+            ]
+        };
+
+        const simpleFillSymbol2 = {
+            type: "simple-fill",
+            color: [34, 139, 34, 0.8],
+            outline: {
+                color: [0, 100, 0],
+                width: 1
+            }
+        };
+
+        const popupTemplate2 = {
+            title: "{Name}",
+            content: "{Description}",
+            picture: "{Picture}"
+        };
+        const attributes2 = {
+            Name: "Grand Teton National Park",
+            Description: "Rising above a scene rich with extraordinary wildlife, pristine lakes, and alpine terrain, the Teton Range stands as a monument to the people who fought to protect it. These are mountains of the imagination. Mountains that led to the creation of Grand Teton National Park where you can explore over two hundred miles of trails, float the Snake River, and enjoy the serenity of this remarkable place. ",
+            Picture: "<img src='images/grand tetons.jfif' />"
+        };
+
+        const polygonGraphic2 = new Graphic({
+            geometry: polygon2,
+            symbol: simpleFillSymbol2,
+
+            attributes: attributes2,
+            popupTemplate: popupTemplate2
+
+        });
+        graphicsLayer.add(polygonGraphic2);
+
+
+        const graphicsLayer3 = new GraphicsLayer();
+        map.add(graphicsLayer3);
+        // Create a polygon geometry
+        const polygon3 = {
+            type: "polygon",
+            rings: [
+                [-111.097659, 44.137491], //Longitude, latitude
+                [-111.102379, 45.100072], //Longitude, latitude
+                [-109.280332, 45.005032], //Longitude, latitude
+                [-109.280332, 44.151040]   //Longitude, latitude
+            ]
+        };
+
+        const simpleFillSymbol3 = {
+            type: "simple-fill",
+            color: [34, 139, 34, 0.8],
+            outline: {
+                color: [0, 100, 0],
+                width: 1
+            }
+        };
+
+        const popupTemplate3 = {
+            title: "{Name}",
+            content: "{Description}"
+        };
+        const attributes3 = {
+            Name: "Yellowstone National Park",
+            Description: "On March 1, 1872, Yellowstone became the first national park for all to enjoy the unique hydrothermal and geologic features. Within Yellowstone's 2.2 million acres, visitors have unparalleled opportunities to observe wildlife in an intact ecosystem, explore geothermal areas that contain about half the world’s active geysers, and view geologic wonders like the Grand Canyon of the Yellowstone River."
+        };
+
+        const polygonGraphic3 = new Graphic({
+            geometry: polygon3,
+            symbol: simpleFillSymbol3,
+
+            attributes: attributes3,
+            popupTemplate: popupTemplate3
+        });
+        graphicsLayer.add(polygonGraphic3);
+
+        const graphicsLayer4 = new GraphicsLayer();
+        map.add(graphicsLayer4);
+        // Create a polygon geometry
+        const polygon4 = {
+            type: "polygon",
+            rings: [
+                [-119.879697, 37.874443], //Longitude, latitude
+                [-119.639397, 38.070559], //Longitude, latitude
+                [-119.314284, 38.050526], //Longitude, latitude
+                [-119.085292, 37.727013], //Longitude, latitude
+                [-119.743998, 37.666616], //Longitude, latitude
+                [-119.896659, 37.758311]   //Longitude, latitude
+            ]
+        };
+
+        const simpleFillSymbol4 = {
+            type: "simple-fill",
+            color: [34, 139, 34, 0.8],
+            outline: {
+                color: [0, 100, 0],
+                width: 1
+            }
+        };
+
+        const popupTemplate4 = {
+            title: "{Name}",
+            content: "{Description}"
+        };
+        const attributes4 = {
+            Name: "Yosemite National Park",
+            Description: "Not just a great valley, but a shrine to human foresight, the strength of granite, the power of glaciers, the persistence of life, and the tranquility of the High Sierra. <br>First protected in 1864, Yosemite National Park is best known for its waterfalls, but within its nearly 1,200 square miles, you can find deep valleys, grand meadows, ancient giant sequoias, a vast wilderness area, and much more."
+        };
+
+        const polygonGraphic4 = new Graphic({
+            geometry: polygon4,
+            symbol: simpleFillSymbol4,
+
+            attributes: attributes4,
+            popupTemplate: popupTemplate4
+        });
+        graphicsLayer.add(polygonGraphic4);
+
+        const graphicsLayer5 = new GraphicsLayer();
+        map.add(graphicsLayer5);
+        // Create a polygon geometry
+        const polygon5 = {
+            type: "polygon",
+            rings: [
+                [-117.678879, 37.344082], //Longitude, latitude
+                [-117.229376, 37.015226], //Longitude, latitude
+                [-116.884475, 37.012969], //Longitude, latitude
+                [-116.884475, 36.755189],   //Longitude, latitude
+                [-116.539573, 36.494267],   //Longitude, latitude
+                [-116.299273, 35.646512],   //Longitude, latitude
+                [-116.924054, 35.653403],   //Longitude, latitude
+                [-118.148172, 36.872881],   //Longitude, latitude
+                [-118.196232, 37.150546],   //Longitude, latitude
+                [-117.760864, 37.339587]   //Longitude, latitude
+            ]
+        };
+
+        const simpleFillSymbol5 = {
+            type: "simple-fill",
+            color: [34, 139, 34, 0.8],
+            outline: {
+                color: [0, 100, 0],
+                width: 1
+            }
+        };
+
+        const popupTemplate5 = {
+            title: "{Name}",
+            content: "{Description}"
+        };
+        const attributes5 = {
+            Name: "Death Valley National Park",
+            Description: "In this below-sea-level basin, steady drought and record summer heat make Death Valley a land of extremes. Yet, each extreme has a striking contrast. Towering peaks are frosted with winter snow. Rare rainstorms bring vast fields of wildflowers. Lush oases harbor tiny fish and refuge for wildlife and humans. Despite its morbid name, a great diversity of life survives in Death Valley."
+        };
+
+        const polygonGraphic5 = new Graphic({
+            geometry: polygon5,
+            symbol: simpleFillSymbol5,
+
+            attributes: attributes5,
+            popupTemplate: popupTemplate5
+        });
+        graphicsLayer.add(polygonGraphic5);
+
+        const graphicsLayer6 = new GraphicsLayer();
+        map.add(graphicsLayer6);
+        // Create a polygon geometry
+        const polygon6 = {
+            type: "polygon",
+            rings: [
+                [-105.887174, 40.444898], //Longitude, latitude
+                [-105.507906, 40.448764], //Longitude, latitude
+                [-105.531610, 40.143996], //Longitude, latitude
+                [-105.832993, 40.131052]   //Longitude, latitude
+            ]
+        };
+
+        const simpleFillSymbol6 = {
+            type: "simple-fill",
+            color: [34, 139, 34, 0.8],
+            outline: {
+                color: [0, 100, 0],
+                width: 1
+            }
+        };
+
+        const popupTemplate6 = {
+            title: "{Name}",
+            content: "{Description}"
+        };
+        const attributes6 = {
+            Name: "Rocky Mountain National Park",
+            Description: "Rocky Mountain National Park's 415 square miles (265,807 acres) encompasses a spectacular range of mountain environments. From meadows found in the montane life zone to glistening alpine lakes and up to the towering mountain peaks, there is something for everyone to discover. Along the way explore over 300 miles of hiking trails and incredible wildlife viewing."
+        };
+
+        const polygonGraphic6 = new Graphic({
+            geometry: polygon6,
+            symbol: simpleFillSymbol6,
+
+            attributes: attributes6,
+            popupTemplate: popupTemplate6
+        });
+        graphicsLayer.add(polygonGraphic6);
+
+        const graphicsLayer7 = new GraphicsLayer();
+        map.add(graphicsLayer7);
+        // Create a polygon geometry
+        const polygon7 = {
+            type: "polygon",
+            rings: [
+                [-105.726728, 37.918916], //Longitude, latitude
+                [-105.645704, 37.925416], //Longitude, latitude
+                [-105.497388, 37.819180], //Longitude, latitude
+                [-105.578412, 37.666603], //Longitude, latitude
+                [-105.727414, 37.664973]   //Longitude, latitude
+            ]
+        };
+
+        const simpleFillSymbol7 = {
+            type: "simple-fill",
+            color: [34, 139, 34, 0.8],
+            outline: {
+                color: [0, 100, 0],
+                width: 1
+            }
+        };
+
+        const popupTemplate7 = {
+            title: "{Name}",
+            content: "{Description}"
+        };
+        const attributes7 = {
+            Name: "Great Sand Dunes National Park",
+            Description: "Open 24/7 year round! There are no limitations or reservations to visit, but there is currently limited capacity in the visitor center. <br>The tallest dunes in North America are the centerpiece in a diverse landscape of grasslands, wetlands, forests, alpine lakes, and tundra. Stay on a moonless night to experience this International Dark Sky Park's starry skies!"
+        };
+
+        const polygonGraphic7 = new Graphic({
+            geometry: polygon7,
+            symbol: simpleFillSymbol7,
+
+            attributes: attributes7,
+            popupTemplate: popupTemplate7
+        });
+        graphicsLayer.add(polygonGraphic7);
+
+        const graphicsLayer8 = new GraphicsLayer();
+        map.add(graphicsLayer8);
+        // Create a polygon geometry
+        const polygon8 = {
+            type: "polygon",
+            rings: [
+                [-109.712680, 38.847891], //Longitude, latitude
+                [-109.484027, 38.757458], //Longitude, latitude
+                [-109.506000, 38.630980], //Longitude, latitude
+                [-109.635089, 38.628298]   //Longitude, latitude
+            ]
+        };
+
+        const simpleFillSymbol8 = {
+            type: "simple-fill",
+            color: [34, 139, 34, 0.8],
+            outline: {
+                color: [0, 100, 0],
+                width: 1
+            }
+        };
+
+        const popupTemplate8 = {
+            title: "{Name}",
+            content: "{Description}"
+        };
+        const attributes8 = {
+            Name: "Arches National Park",
+            Description: "Discover a landscape of contrasting colors, land forms, and textures unlike any other. The park has over 2,000 natural stone arches, hundreds of soaring pinnacles, massive rock fins, and giant balanced rocks. This red-rock wonderland will amaze you with its formations, refresh you with its trails, and inspire you with its sunsets."
+        };
+
+        const polygonGraphic8 = new Graphic({
+            geometry: polygon8,
+            symbol: simpleFillSymbol8,
+
+            attributes: attributes8,
+            popupTemplate: popupTemplate8
+        });
+        graphicsLayer.add(polygonGraphic8);
+
+        const graphicsLayer9 = new GraphicsLayer();
+        map.add(graphicsLayer9);
+        // Create a polygon geometry
+        const polygon9 = {
+            type: "polygon",
+            rings: [
+                [-113.117402, 37.372229], //Longitude, latitude
+                [-112.900422, 37.368409], //Longitude, latitude
+                [-112.863343, 37.151449], //Longitude, latitude
+                [-113.101609, 37.180997]   //Longitude, latitude
+            ]
+        };
+
+        const simpleFillSymbol9 = {
+            type: "simple-fill",
+            color: [34, 139, 34, 0.8],
+            outline: {
+                color: [0, 100, 0],
+                width: 1
+            }
+        };
+
+        const popupTemplate9 = {
+            title: "{Name}",
+            content: "{Description}"
+        };
+        const attributes9 = {
+            Name: "Zion National Park",
+            Description: "Follow the paths where native people and pioneers walked. Gaze up at massive sandstone cliffs of cream, pink, and red that soar into a brilliant blue sky. Experience wilderness in a narrow slot canyon. Zion’s unique array of plants and animals will enchant you as you absorb the rich history of the past and enjoy the excitement of present day adventures."
+        };
+
+        const polygonGraphic9 = new Graphic({
+            geometry: polygon9,
+            symbol: simpleFillSymbol9,
+
+            attributes: attributes9,
+            popupTemplate: popupTemplate9
+        });
+        graphicsLayer.add(polygonGraphic9);
+
+        const graphicsLayer10 = new GraphicsLayer();
+        map.add(graphicsLayer10);
+        // Create a polygon geometry
+        const polygon10 = {
+            type: "polygon",
+            rings: [
+                [-112.238997, 37.681058], //Longitude, latitude
+                [-112.090233, 37.669362], //Longitude, latitude
+                [-112.185796, 37.503855], //Longitude, latitude
+                [-112.288256, 37.512451]   //Longitude, latitude
+            ]
+        };
+
+        const simpleFillSymbol10 = {
+            type: "simple-fill",
+            color: [34, 139, 34, 0.8],
+            outline: {
+                color: [0, 100, 0],
+                width: 1
+            }
+        };
+
+        const popupTemplate10 = {
+            title: "{Name}",
+            content: "{Description}"
+        };
+        const attributes10 = {
+            Name: "Bryce Canyon National Park",
+            Description: "Hoodoos (irregular columns of rock) exist on every continent, but here is the largest concentration found anywhere on Earth. Situated along a high plateau at the top of the Grand Staircase, the park's high elevations include numerous life communities, fantastic dark skies, and geological wonders that defy description."
+        };
+
+        const polygonGraphic10 = new Graphic({
+            geometry: polygon10,
+            symbol: simpleFillSymbol10,
+
+            attributes: attributes10,
+            popupTemplate: popupTemplate10
+        });
+        graphicsLayer.add(polygonGraphic10);
+
+        const graphicsLayer11 = new GraphicsLayer();
+        map.add(graphicsLayer11);
+        // Create a polygon geometry
+        const polygon11 = {
+            type: "polygon",
+            rings: [
+                [-114.375648, 39.074208], //Longitude, latitude
+                [-114.224312, 39.065268], //Longitude, latitude
+                [-114.165093, 38.819621], //Longitude, latitude
+                [-114.345217, 38.827310]   //Longitude, latitude
+            ]
+        };
+
+        const simpleFillSymbol11 = {
+            type: "simple-fill",
+            color: [34, 139, 34, 0.8],
+            outline: {
+                color: [0, 100, 0],
+                width: 1
+            }
+        };
+
+        const popupTemplate11 = {
+            title: "{Name}",
+            content: "{Description}"
+        };
+        const attributes11 = {
+            Name: "Great Basin National Park",
+            Description: "From the 13,063-foot summit of Wheeler Peak, to the sage-covered foothills, Great Basin National Park is a place to sample the stunning diversity of the larger Great Basin region. Come and partake of the solitude of the wilderness, walk among ancient bristlecone pines, bask in the darkest of night skies, and explore mysterious subterranean passages. There's a whole lot more than just desert here!"
+        };
+
+        const polygonGraphic11 = new Graphic({
+            geometry: polygon11,
+            symbol: simpleFillSymbol11,
+
+            attributes: attributes11,
+            popupTemplate: popupTemplate11
+        });
+        graphicsLayer.add(polygonGraphic11);
+
+        const graphicsLayer12 = new GraphicsLayer();
+        map.add(graphicsLayer12);
+        // Create a polygon geometry
+        const polygon12 = {
+            type: "polygon",
+            rings: [
+                [-122.370004, 43.002419], //Longitude, latitude
+                [-121.961965, 42.991199], //Longitude, latitude
+                [-121.954614, 42.826976], //Longitude, latitude
+                [-122.384165, 42.939386]   //Longitude, latitude
+            ]
+        };
+
+        const simpleFillSymbol12 = {
+            type: "simple-fill",
+            color: [34, 139, 34, 0.8],
+            outline: {
+                color: [0, 100, 0],
+                width: 1
+            }
+        };
+
+        const popupTemplate12 = {
+            title: "{Name}",
+            content: "{Description}"
+        };
+        const attributes12 = {
+            Name: "Crater Lake National Park",
+            Description: "Crater Lake inspires awe. Native Americans witnessed its formation 7,700 years ago, when a violent eruption triggered the collapse of a tall peak. Scientists marvel at its purity—fed by rain and snow, it’s the deepest lake in the USA and one of the most pristine on Earth. Artists, photographers, and sightseers gaze in wonder at its blue water and stunning setting atop the Cascade Mountain Range."
+        };
+
+        const polygonGraphic12 = new Graphic({
+            geometry: polygon12,
+            symbol: simpleFillSymbol12,
+
+            attributes: attributes12,
+            popupTemplate: popupTemplate12
+        });
+        graphicsLayer.add(polygonGraphic12);
+
+        const graphicsLayer13 = new GraphicsLayer();
+        map.add(graphicsLayer13);
+        // Create a polygon geometry
+        const polygon13 = {
+            type: "polygon",
+            rings: [
+                [-124.057846, 41.454202], //Longitude, latitude
+                [-124.003115, 41.421588], //Longitude, latitude
+                [-123.895056, 41.155860], //Longitude, latitude
+                [-124.109771, 41.213949]   //Longitude, latitude
+            ]
+        };
+
+        const simpleFillSymbol13 = {
+            type: "simple-fill",
+            color: [34, 139, 34, 0.8],
+            outline: {
+                color: [0, 100, 0],
+                width: 1
+            }
+        };
+
+        const popupTemplate13 = {
+            title: "{Name}",
+            content: "{Description}"
+        };
+        const attributes13 = {
+            Name: "Redwood National Park",
+            Description: "Most people know Redwood as home to the tallest trees on Earth. But the Parks also protect vast prairies, oak woodlands, wild rivers, and 40 miles of rugged coastline. People have lived in this verdant landscape since time immemorial. Together, the National Park Service and California State Parks are managing and restoring these lands for the inspiration, enjoyment, and education of all. "
+        };
+
+        const polygonGraphic13 = new Graphic({
+            geometry: polygon13,
+            symbol: simpleFillSymbol13,
+
+            attributes: attributes13,
+            popupTemplate: popupTemplate13
+        });
+        graphicsLayer.add(polygonGraphic13);
+
+        const graphicsLayer14 = new GraphicsLayer();
+        map.add(graphicsLayer14);
+        // Create a polygon geometry
+        const polygon14 = {
+            type: "polygon",
+            rings: [
+                [-121.640104, 40.564322], //Longitude, latitude
+                [-121.259142, 40.563036], //Longitude, latitude
+                [-121.253216, 40.423974], //Longitude, latitude
+                [-121.579966, 40.428486]   //Longitude, latitude
+            ]
+        };
+
+        const simpleFillSymbol14 = {
+            type: "simple-fill",
+            color: [34, 139, 34, 0.8],
+            outline: {
+                color: [0, 100, 0],
+                width: 1
+            }
+        };
+
+        const popupTemplate14 = {
+            title: "{Name}",
+            content: "{Description}"
+        };
+        const attributes14 = {
+            Name: "Lassen Volcanic National Park",
+            Description: "Lassen Volcanic National Park is home to steaming fumaroles, meadows freckled with wildflowers, clear mountain lakes, and numerous volcanoes. Jagged peaks tell the story of its eruptive past while hot water continues to shape the land."
+        };
+
+        const polygonGraphic14 = new Graphic({
+            geometry: polygon14,
+            symbol: simpleFillSymbol14,
+
+            attributes: attributes14,
+            popupTemplate: popupTemplate14
+        });
+        graphicsLayer.add(polygonGraphic14);
+
+        const graphicsLayer15 = new GraphicsLayer();
+        map.add(graphicsLayer15);
+        // Create a polygon geometry
+        const polygon15 = {
+            type: "polygon",
+            rings: [
+                [-118.911465, 37.009085], //Longitude, latitude
+                [-118.320950, 37.006891], //Longitude, latitude
+                [-118.270139, 36.598943], //Longitude, latitude
+                [-118.732938, 36.598943]   //Longitude, latitude
+            ]
+        };
+
+        const simpleFillSymbol15 = {
+            type: "simple-fill",
+            color: [34, 139, 34, 0.8],
+            outline: {
+                color: [0, 100, 0],
+                width: 1
+            }
+        };
+
+        const popupTemplate15 = {
+            title: "{Name}",
+            content: "{Description}"
+        };
+        const attributes15 = {
+            Name: "King's Canyon National Park",
+            Description: "Huge mountains, rugged foothills, deep canyons, vast caverns, and the world’s largest trees exemplify the diversity of landscapes, life, and beauty here. Explore these pages to learn about the plants and animals here and the threats they face. Our ancient giant sequoias may seem invincible, but they, too are vulnerable."
+        };
+
+        const polygonGraphic15 = new Graphic({
+            geometry: polygon15,
+            symbol: simpleFillSymbol15,
+
+            attributes: attributes15,
+            popupTemplate: popupTemplate15
+        });
+        graphicsLayer.add(polygonGraphic15);
+
+        const graphicsLayer16 = new GraphicsLayer();
+        map.add(graphicsLayer16);
+        // Create a polygon geometry
+        const polygon16 = {
+            type: "polygon",
+            rings: [
+                [-118.888119, 36.572479], //Longitude, latitude
+                [-118.205594, 36.568067], //Longitude, latitude
+                [-118.164395, 36.163331], //Longitude, latitude
+                [-118.757657, 36.164439]   //Longitude, latitude
+            ]
+        };
+
+        const simpleFillSymbol16 = {
+            type: "simple-fill",
+            color: [34, 139, 34, 0.8],
+            outline: {
+                color: [0, 100, 0],
+                width: 1
+            }
+        };
+
+        const popupTemplate16 = {
+            title: "{Name}",
+            content: "{Description}"
+        };
+        const attributes16 = {
+            Name: "Sequoia National Park",
+            Description: "Huge mountains, rugged foothills, deep canyons, vast caverns, and the world’s largest trees exemplify the diversity of landscapes, life, and beauty here. Explore these pages to learn about the plants and animals here and the threats they face. Our ancient giant sequoias may seem invincible, but they, too are vulnerable."
+        };
+
+        const polygonGraphic16 = new Graphic({
+            geometry: polygon16,
+            symbol: simpleFillSymbol16,
+
+            attributes: attributes16,
+            popupTemplate: popupTemplate16
+        });
+        graphicsLayer.add(polygonGraphic16);
+
+        const graphicsLayer17 = new GraphicsLayer();
+        map.add(graphicsLayer17);
+        // Create a polygon geometry
+        const polygon17 = {
+            type: "polygon",
+            rings: [
+                [-121.936211, 47.077130], //Longitude, latitude
+                [-121.588439, 47.081156], //Longitude, latitude
+                [-121.561839, 46.744662], //Longitude, latitude
+                [-121.981529, 46.732509]   //Longitude, latitude
+            ]
+        };
+
+        const simpleFillSymbol17 = {
+            type: "simple-fill",
+            color: [34, 139, 34, 0.8],
+            outline: {
+                color: [0, 100, 0],
+                width: 1
+            }
+        };
+
+        const popupTemplate17 = {
+            title: "{Name}",
+            content: "{Description}"
+        };
+        const attributes17 = {
+            Name: "Mount Rainier National Park",
+            Description: "Ascending to 14,410 feet above sea level, Mount Rainier stands as an icon in the Washington landscape. An active volcano, Mount Rainier is the most glaciated peak in the contiguous U.S.A., spawning five major rivers. Subalpine wildflower meadows ring the icy volcano while ancient forest cloaks Mount Rainier’s lower slopes. Wildlife abounds in the park’s ecosystems. A lifetime of discovery awaits."
+        };
+
+        const polygonGraphic17 = new Graphic({
+            geometry: polygon17,
+            symbol: simpleFillSymbol17,
+
+            attributes: attributes17,
+            popupTemplate: popupTemplate17
+        });
+        graphicsLayer.add(polygonGraphic17);
+
+        const graphicsLayer18 = new GraphicsLayer();
+        map.add(graphicsLayer18);
+        // Create a polygon geometry
+        const polygon18 = {
+            type: "polygon",
+            rings: [
+                [-124.279523, 48.153195], //Longitude, latitude
+                [-122.963312, 47.983342], //Longitude, latitude
+                [-123.274631, 47.350407], //Longitude, latitude
+                [-123.958351, 47.371762]   //Longitude, latitude
+            ]
+        };
+
+        const simpleFillSymbol18 = {
+            type: "simple-fill",
+            color: [34, 139, 34, 0.8],
+            outline: {
+                color: [0, 100, 0],
+                width: 1
+            }
+        };
+
+        const popupTemplate18 = {
+            title: "{Name}",
+            content: "{Description}"
+        };
+        const attributes18 = {
+            Name: "Olympic National Park",
+            Description: "With its incredible range of precipitation and elevation, diversity is the hallmark of Olympic National Park. Encompassing nearly a million acres, the park protects a vast wilderness, thousands of years of human history, and several distinctly different ecosystems, including glacier-capped mountains, old-growth temperate rain forests, and over 70 miles of wild coastline. Come explore!"
+        };
+
+        const polygonGraphic18 = new Graphic({
+            geometry: polygon18,
+            symbol: simpleFillSymbol18,
+
+            attributes: attributes18,
+            popupTemplate: popupTemplate18
+        });
+        graphicsLayer.add(polygonGraphic18);
+
+        const graphicsLayer19 = new GraphicsLayer();
+        map.add(graphicsLayer19);
+        // Create a polygon geometry
+        const polygon19 = {
+            type: "polygon",
+            rings: [
+                [-109.916135, 35.168977], //Longitude, latitude
+                [-109.689027, 35.169732], //Longitude, latitude
+                [-109.605939, 34.822601], //Longitude, latitude
+                [-109.966912, 34.852910]   //Longitude, latitude
+            ]
+        };
+
+        const simpleFillSymbol19 = {
+            type: "simple-fill",
+            color: [34, 139, 34, 0.8],
+            outline: {
+                color: [0, 100, 0],
+                width: 1
+            }
+        };
+
+        const popupTemplate19 = {
+            title: "{Name}",
+            content: "{Description}"
+        };
+        const attributes19 = {
+            Name: "Petrified Forest National Park",
+            Description: "Petrified Forest National Park is an American national park in Navajo and Apache counties in northeastern Arizona. Named for its large deposits of petrified wood, the park covers about 346 square miles (900 square kilometers), encompassing semi-desert shrub steppe as well as highly eroded and colorful badlands."
+        };
+
+        const polygonGraphic19 = new Graphic({
+            geometry: polygon19,
+            symbol: simpleFillSymbol19,
+
+            attributes: attributes19,
+            popupTemplate: popupTemplate19
+        });
+        graphicsLayer.add(polygonGraphic19);
+
+        const graphicsLayer20 = new GraphicsLayer();
+        map.add(graphicsLayer20);
+        // Create a polygon geometry
+        const polygon20 = {
+            type: "polygon",
+            rings: [
+                [-116.451137, 34.072168], //Longitude, latitude
+                [-115.284675, 34.050947], //Longitude, latitude
+                [-115.513238, 33.718896], //Longitude, latitude
+                [-116.021595, 33.723813]   //Longitude, latitude
+            ]
+        };
+
+        const simpleFillSymbol20 = {
+            type: "simple-fill",
+            color: [34, 139, 34, 0.8],
+            outline: {
+                color: [0, 100, 0],
+                width: 1
+            }
+        };
+
+        const popupTemplate20 = {
+            title: "{Name}",
+            content: "{Description}"
+        };
+        const attributes20 = {
+            Name: "Joshua Tree National Park",
+            Description: "Two distinct desert ecosystems, the Mojave and the Colorado, come together in Joshua Tree National Park. A fascinating variety of plants and animals make their homes in a land sculpted by strong winds and occasional torrents of rain. Dark night skies, a rich cultural history, and surreal geologic features add to the wonder of this vast wilderness in southern California. Come explore for yourself."
+        };
+
+        const polygonGraphic20 = new Graphic({
+            geometry: polygon20,
+            symbol: simpleFillSymbol20,
+
+            attributes: attributes20,
+            popupTemplate: popupTemplate20
+        });
+        graphicsLayer.add(polygonGraphic20);
+
+    });
+  </script>
+</head>
+<body>
+  <div id="viewDiv"></div>
+</body>
+</html>
